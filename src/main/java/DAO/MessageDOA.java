@@ -35,4 +35,29 @@ public class MessageDOA {
         }
         return messages;
     }
+
+    public Message getMessageById(int id){
+        Connection connection = ConnectionUtil.getConnection();
+        try {
+            String sql = "SELECT * FROM message WHERE message_id = ?;";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setInt(1, id);
+            ResultSet rs = preparedStatement.executeQuery();
+
+            while (rs.next()){
+                Message message = new Message(
+                    rs.getInt("message_id"),
+                    rs.getInt("posted_by"),
+                    rs.getString("message_text"),
+                    rs.getLong("time_posted_epoc")
+                );
+                return message;
+            }
+
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
 }
