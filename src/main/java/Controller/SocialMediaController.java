@@ -1,5 +1,9 @@
 package Controller;
 
+import java.util.List;
+
+import DAO.MessageDOA;
+import Model.Message;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 
@@ -14,10 +18,13 @@ public class SocialMediaController {
      * suite must receive a Javalin object from this method.
      * @return a Javalin app object which defines the behavior of the Javalin controller.
      */
+    private MessageDOA messageDOA;
+
     public Javalin startAPI() {
+        messageDOA = new MessageDOA();
         Javalin app = Javalin.create();
         app.get("example-endpoint", this::exampleHandler);
-
+        app.get("/messages", this::getAllMessages);
         return app;
     }
 
@@ -29,5 +36,31 @@ public class SocialMediaController {
         context.json("sample text");
     }
 
+    private void getAllMessages(Context context) {
+        List<Message> messages = messageDOA.getAllMessages();
+        String jsonString = "";
+        if (messages.size() > 1) {
+            jsonString = jsonString + "{\n    ";
+            for (int i = 0; i < messages.size(); i++) {
+                Message messageObj = messages.get(i);
+                String message = "{\n        "
+                    + "\"message_id\":%d,\n        "
+                    + "\"posted_by\":%d,\n        "
+                    + "\"message_text\":%s,\n        "
+                    + "\"time_posted_epoch\":%f,\n"
+                    + "    },\n{    ";
+                message = String.format(jsonString,
+                    messageObj.getMessage_id(),
+                    messageObj.getPosted_by(),
+                    messageObj.getMessage_text(),
+                    messageObj.getTime_posted_epoch());
+                jsonString = jsonString + message;
+            }
+            jsonString = jsonString.substring(0, jsonString.length()-7);
+            jsonString = jsonString + "\n}";
+        }
+        context.status(200);
+        context.json(messages);
+    }
 
 }
