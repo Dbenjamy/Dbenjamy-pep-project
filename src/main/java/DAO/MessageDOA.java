@@ -12,24 +12,40 @@ import java.util.List;
 
 public class MessageDOA {
 
-    
-
     public boolean createMessage(int posted_by, String message_text, Long time_posted_epoch) {
-        Connection connection = ConnectionUtil.getConnection();
         try {
-            String sql = "INSERT INTO message (posted_by, message_text, time_posted_epoch)"
-                + " VALUES (?, ?, ?);";
+            if (message_text.length() > 255
+                    || message_text == ""
+                    || !doesAccountExist(posted_by)) {
+                return false;
+            }
+            Connection connection = ConnectionUtil.getConnection();
+            String sql = "INSERT INTO message "
+                + "(posted_by,message_text,time_posted_epoch) VALUES (?,?,?);";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, posted_by);
             preparedStatement.setString(2, message_text);
-            preparedStatement.setFloat(3, time_posted_epoch);
+            preparedStatement.setLong(3, time_posted_epoch);
 
-            int linesChanged = preparedStatement.executeUpdate();
-            if (linesChanged == 1) {
-                return true;
-            }
-        } catch (Exception e) {
+            int affected = preparedStatement.executeUpdate();
+            return affected == 1;
+        } catch (SQLException e) {
             System.out.println(e.getMessage());
+        }
+        return false;
+    }
+
+    public boolean doesAccountExist(int id) {
+        try {
+            Connection connection = ConnectionUtil.getConnection();
+            String sql = "SELECT * FROM account WHERE account_id = ?;";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setInt(1, id);
+            
+            ResultSet rs = preparedStatement.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
         return false;
     }

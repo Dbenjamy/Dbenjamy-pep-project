@@ -95,24 +95,16 @@ public class SocialMediaController {
 
     private void createMessage(Context context) {
         String jsonString = context.body();
-        boolean success = false;
         try {
             Message message = objectMapper.readValue(jsonString, Message.class);
-            int posted_by = message.getPosted_by();
-            String message_text = message.getMessage_text();
-            long time_posted_epoch = message.getTime_posted_epoch();
-
-            if (message_text.length() > 255
-                    || message_text == ""
-                    || accountDOA.getAccountById(posted_by).size() == 0) {
-                success = messageDOA.createMessage(
-                    posted_by,
-                    message_text,
-                    time_posted_epoch);
-            }
-
+            boolean success = messageDOA.createMessage(
+                message.getPosted_by(),
+                message.getMessage_text(),
+                message.getTime_posted_epoch());
             if (success) {
-                context.json(messageDOA.getMessageByText(message.getMessage_text()));
+                context.json(
+                    messageDOA.getMessageByText(message.getMessage_text())
+                    .get(0));
             } else {
                 context.status(400);
                 context.json("");
