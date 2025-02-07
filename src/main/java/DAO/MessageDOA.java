@@ -77,16 +77,16 @@ public class MessageDOA {
         }
         return messages;
     }
-        
+
     public List<Message> getAllMessages(){
         Connection connection = ConnectionUtil.getConnection();
         List<Message> messages = new ArrayList<>();
-        
+
         try {
             String sql = "SELECT * FROM message;";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            ResultSet rs = preparedStatement.executeQuery();        
-            
+            ResultSet rs = preparedStatement.executeQuery();
+
             while (rs.next()) {
                 messages.add(new Message(
                    rs.getInt("message_id"),
@@ -111,7 +111,7 @@ public class MessageDOA {
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, id);
 
-            ResultSet rs = preparedStatement.executeQuery();        
+            ResultSet rs = preparedStatement.executeQuery();
             while (rs.next()) {
                 messages.add(new Message(
                    rs.getInt("message_id"),
@@ -188,5 +188,4 @@ public class MessageDOA {
         }
         return false;
     }
-
 }
