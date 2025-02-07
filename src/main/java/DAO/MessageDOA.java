@@ -12,12 +12,13 @@ import java.util.List;
 
 public class MessageDOA {
 
-    public boolean createMessage(int posted_by, String message_text, Long time_posted_epoch) {
+    public List<Message> createMessage(int posted_by, String message_text, Long time_posted_epoch) {
+        List<Message> messages = new ArrayList<>();
         try {
             if (message_text.length() > 255
                     || message_text == ""
                     || !doesAccountExist(posted_by)) {
-                return false;
+                return messages;
             }
             Connection connection = ConnectionUtil.getConnection();
             String sql = "INSERT INTO message "
@@ -27,27 +28,32 @@ public class MessageDOA {
             preparedStatement.setString(2, message_text);
             preparedStatement.setLong(3, time_posted_epoch);
 
-            int affected = preparedStatement.executeUpdate();
-            return affected == 1;
+            boolean messageCreated = 0 != preparedStatement.executeUpdate();
+            if (messageCreated) {
+                return getMessageByText(message_text);
+            }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
-        return false;
+        return messages;
     }
 
-    public boolean doesAccountExist(int id) {
+    public List<Message> deleteMessage(int message_id) {
+        List<Message> messages = getMessageById(message_id);
+        if (messages.size() == 0) {
+            return messages;
+        }
         try {
             Connection connection = ConnectionUtil.getConnection();
-            String sql = "SELECT * FROM account WHERE account_id = ?;";
+            String sql = "DELETE FROM message WHERE message_id = ?;";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setInt(1, id);
-            
-            ResultSet rs = preparedStatement.executeQuery();
-            return rs.next();
+            preparedStatement.setInt(1, message_id);
+
+            preparedStatement.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println(e.getMessage());
         }
-        return false;
+        return messages;
     }
 
     public List<Message> getMessageByText(String text) {
@@ -96,6 +102,31 @@ public class MessageDOA {
         return messages;
     }
 
+    public List<Message> getAllMessagesByUser(int id){
+        Connection connection = ConnectionUtil.getConnection();
+        List<Message> messages = new ArrayList<>();
+        
+        try {
+            String sql = "SELECT * FROM message WHERE posted_by = ?;";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setInt(1, id);
+
+            ResultSet rs = preparedStatement.executeQuery();        
+            while (rs.next()) {
+                messages.add(new Message(
+                   rs.getInt("message_id"),
+                   rs.getInt("posted_by"),
+                   rs.getString("message_text"),
+                   rs.getLong("time_posted_epoch")
+                ));
+            }
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return messages;
+    }
+
     public List<Message> getMessageById(int id){
         Connection connection = ConnectionUtil.getConnection();
         List<Message> messages = new ArrayList<>();
@@ -119,4 +150,43 @@ public class MessageDOA {
         }
         return messages;
     }
+
+    public List<Message> updateMessage(int message_id, String message_text) {
+        Connection connection = ConnectionUtil.getConnection();
+        List<Message> messages = new ArrayList<>();
+
+        try {
+            if (message_text.length() > 255 || message_text == "") {
+                return messages;
+            }
+            String sql = "UPDATE message SET message_text = ? WHERE message_id = ?;";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, message_text);
+            preparedStatement.setInt(2, message_id);
+
+            boolean messageUpdated = 0 != preparedStatement.executeUpdate();
+            if (messageUpdated) {
+                return getMessageById(message_id);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return messages;
+    }
+
+    public boolean doesAccountExist(int id) {
+        try {
+            Connection connection = ConnectionUtil.getConnection();
+            String sql = "SELECT * FROM account WHERE account_id = ?;";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setInt(1, id);
+            
+            ResultSet rs = preparedStatement.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
 }
