@@ -39,64 +39,44 @@ public class SocialMediaController {
         return app;
     }
 
-    private void registerAccount(Context ctx) {
-        try {
-            Account account = objectMapper.readValue(
-                ctx.body(),
-                Account.class);
-            List<Account> accounts = accountDOA.registerAccount(
-                account.getUsername(),
-                account.getPassword());
-            if (accounts.size() != 0) {
-                ctx.json(accounts.get(0));
-            } else {
-                ctx.status(400);
-                ctx.json("");
-            }
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
+    private void registerAccount(Context ctx) throws JsonProcessingException {
+        Account account = objectMapper.readValue(ctx.body(), Account.class);
+        List<Account> accounts = accountDOA.registerAccount(
+            account.getUsername(),
+            account.getPassword());
+        if (accounts.size() != 0) {
+            ctx.json(accounts.get(0));
+        } else {
+            ctx.status(400);
         }
     }
 
-    private void accountLogin(Context ctx) {
-        try {
-            Account account = objectMapper.readValue(
-                ctx.body(),
-                Account.class);
-            List<Account> accounts = accountDOA.accountLogin(
-                account.getUsername(),
-                account.getPassword());
-            if (accounts.size() != 0) {
-                ctx.json(accounts.get(0));
-            } else {
-                ctx.status(401);
-                ctx.json("");
-            }
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
+    private void accountLogin(Context ctx) throws JsonProcessingException {
+        Account account = objectMapper.readValue(ctx.body(), Account.class);
+        List<Account> accounts = accountDOA.accountLogin(
+            account.getUsername(),
+            account.getPassword());
+        if (accounts.size() != 0) {
+            ctx.json(accounts.get(0));
+        } else {
+            ctx.status(401);
         }
     }
 
-    private void createMessage(Context ctx) {
-        try {
-            Message message = objectMapper.readValue(
-                ctx.body(),
-                Message.class);
-            List<Message> messages = messageDOA.createMessage(
-                message.getPosted_by(),
-                message.getMessage_text(),
-                message.getTime_posted_epoch());
-                if (messages.size() != 0) {
-                    ctx.json(messages.get(0));
-                } else {
-                    ctx.status(400);
-                ctx.json("");
-            }
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
+    private void createMessage(Context ctx) throws JsonProcessingException {
+        Message message = objectMapper.readValue(ctx.body(), Message.class);
+        List<Message> messages = messageDOA.createMessage(
+            message.getPosted_by(),
+            message.getMessage_text(),
+            message.getTime_posted_epoch());
+        if (messages.size() != 0) {
+            ctx.json(messages.get(0));
+        } else {
+            ctx.status(400);
+            ctx.json("");
         }
     }
-    
+
     private void deleteMessage(Context ctx) {
         int message_id = Integer.valueOf(ctx.pathParam("message_id"));
         List<Message> messages = messageDOA.deleteMessage(message_id);
@@ -120,7 +100,6 @@ public class SocialMediaController {
     private void getMessageById(Context ctx) {
         int message_id = Integer.valueOf(ctx.pathParam("message_id"));
         List<Message> messages = messageDOA.getMessageById(message_id);
-        ctx.status(200);
         if (messages.size() > 0) {
             ctx.json(messages.get(0));
         } else {
@@ -128,23 +107,16 @@ public class SocialMediaController {
         }
     }
 
-    private void updateMessage(Context ctx) {
+    private void updateMessage(Context ctx) throws JsonProcessingException {
         int message_id = Integer.valueOf(ctx.pathParam("message_id"));
-        try {
-            Message message = objectMapper.readValue(
-                ctx.body(),
-                Message.class);
-            List<Message> messages = messageDOA.updateMessage(
-                message_id,
-                message.getMessage_text());
-            if (messages.size() != 0) {
-                ctx.json(messages.get(0));
-            } else {
-                ctx.status(400);
-                ctx.json("");
-            }
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
+        Message message = objectMapper.readValue(ctx.body(), Message.class);
+        List<Message> messages = messageDOA.updateMessage(
+            message_id,
+            message.getMessage_text());
+        if (messages.size() != 0) {
+            ctx.json(messages.get(0));
+        } else {
+            ctx.status(400);
         }
     }
 }
